@@ -1,42 +1,9 @@
 // Modules to control application life and create native browser window
-const {app, Menu, BrowserWindow} = require('electron');
+const {app, ipcMain, BrowserWindow} = require('electron');
 const path = require('path');
+const {exec} =  require('child_process');
+const server =  require('./server');
 
-const {exec} = require('child_process');
-
-// 任何你期望执行的cmd命令，ls都可以
-let cmdStr = 'serve public';
-// 执行cmd命令的目录，如果使用cd xx && 上面的命令，这种将会无法正常退出子进程
-let cmdPath = '.';
-// 子进程名称
-let workerProcess;
-
-function runExec() {
-
-    console.log('runExec !!');
-    // 执行命令行，如果命令不需要路径，或就是项目根目录，则不需要cwd参数：
-    workerProcess = exec(cmdStr, {cwd: cmdPath});
-    // 不受child_process默认的缓冲区大小的使用方法，没参数也要写上{}：workerProcess = exec(cmdStr, {})
-
-    // 打印正常的后台可执行程序输出
-    workerProcess.stdout.on('data', function (data) {
-        console.log('stdout: ' + data);
-        // 'start chrome www.google.com'
-        const regex = /http:\/\/.*/;
-        const url = (data.match(regex))[0];
-        exec(`start chrome ${url}`);
-    });
-
-    // 打印错误的后台可执行程序输出
-    workerProcess.stderr.on('data', function (data) {
-        console.log('stderr: ' + data);
-    });
-
-    // 退出之后的输出
-    workerProcess.on('close', function (code) {
-        console.log('out code：' + code);
-    })
-}
 
 function createWindow() {
     // Create the browser window.
@@ -44,7 +11,8 @@ function createWindow() {
         width: 800,
         height: 600,
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: true // 讓 render.js 中可以使用 require
         }
     });
 
@@ -52,7 +20,7 @@ function createWindow() {
     mainWindow.loadFile('index.html');
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished
@@ -62,8 +30,6 @@ app.on('ready', function () {
 
     // const menu = Menu.buildFromTemplate(template);
     // Menu.setApplicationMenu(menu);
-
-    runExec(); // 生效啦，可以做些什么执行一种相对的同步状态，例如判断输出内容到什么了
 
     createWindow()
 });
@@ -81,5 +47,22 @@ app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
 });
 
+//> ipcMain is ipc of main process
+//> ipcMain listen to close-main-window channel here
+ipcMain.on('close-main-window', () => {
+    console.log('closed by ipc');
+    app.quit();
+});
+
+
+ipcMain.on('open-chrome', () => {
+    console.log('open chrome');
+    exec(`start chrome http://localhost:3000`);
+});
+
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+
+
