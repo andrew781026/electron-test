@@ -1,8 +1,22 @@
 // Modules to control application life and create native browser window
-const {app, ipcMain, BrowserWindow} = require('electron');
+const {app, ipcMain, Menu, BrowserWindow} = require('electron');
 const path = require('path');
-const {exec} =  require('child_process');
-const server =  require('./server');
+const {exec} = require('child_process');
+const server = require('./server');
+
+const isMac = process.platform === 'darwin';
+
+const template = [
+    {
+        label: '檔案',
+        submenu: [
+            {
+                label: '關閉',
+                role: isMac ? 'close' : 'quit'
+            }
+        ]
+    },
+];
 
 
 function createWindow() {
@@ -28,8 +42,8 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', function () {
 
-    // const menu = Menu.buildFromTemplate(template);
-    // Menu.setApplicationMenu(menu);
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
 
     createWindow()
 });
