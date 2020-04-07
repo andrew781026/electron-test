@@ -5,7 +5,7 @@
 // selectively enable features needed in the rendering
 // process.
 
-// 可以利用 IPC 將
+// 可以利用 IPC 將將開啟 chrome 的指令 , 綁定在按鈕上
 // https://medium.com/@terracotta_ko/electron-ipc-%E6%A9%9F%E5%88%B6-2a1b087c9ae5
 
 //> ipc for renderer process
